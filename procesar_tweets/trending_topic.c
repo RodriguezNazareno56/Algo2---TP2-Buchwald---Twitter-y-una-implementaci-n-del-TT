@@ -6,6 +6,7 @@
 #include "vector.h"
 #include "heap.h"
 #include "hash.h"
+#include "pila.h"
 
 typedef struct hashtag{
     char* hashtag_char;
@@ -59,7 +60,7 @@ int hashtag_cmp(const void *a, const void *b){
 	if(hashtag_2->hashtag_char == NULL) return -1;
 	if (hashtag_repeticiones(hashtag_1) > hashtag_repeticiones(hashtag_2))
         return -1;
-    return hashtag_repeticiones(hashtag_1) < hashtag_repeticiones(hashtag_2);
+    return hashtag_repeticiones(hashtag_1) < hashtag_repeticiones(hashtag_2) * -1;
 }
 
 
@@ -109,21 +110,24 @@ void trending_topic_comparar(const char *hashtag_actual, trending_topic_t* trend
 
 			heap_encolar(trending_topic->heap_de_menores_tt, hashtag_nuevo);
 			hash_guardar(trending_topic->hash_tt, hashtag_nuevo->hashtag_char, NULL);
-			printf("\t\tSe encolo el hashtag: %s \n", hashtag_actual);
 		}
 	}
 }
 
-void trending_topic_recorrer(trending_topic_t* trending_topic, countMinSketch_t* countMinSketch){
-	printf("\n Recorrer heap\n");
-	for(int i=0; i < 3; i++){
+void trending_topic_imprimir(trending_topic_t* trending_topic, countMinSketch_t* countMinSketch, size_t ronda_numero){
+	pila_t* pila_tt = pila_crear();
+	while(!heap_esta_vacio(trending_topic->heap_de_menores_tt)){
 		hashtag_t* hashtag_actual = (hashtag_t*)heap_desencolar(trending_topic->heap_de_menores_tt);
 		const char* hashtag_char = hashtag_actual->hashtag_char;
-		if(hashtag_char == NULL){
-			printf("El TT es NULL\n");
-		}else{
-			printf("El TT '%s' se repitio: %d \n", hashtag_char, countMinSketch_obtener(countMinSketch, hashtag_char));
-			hashtag_destruir(hashtag_actual);
+		if(hashtag_char != NULL){
+			pila_apilar(pila_tt, hashtag_actual);
 		}
 	}
+	printf("--- %ld\n", ronda_numero);
+	while(!pila_esta_vacia(pila_tt)){
+		hashtag_t* hashtag_actual = (hashtag_t*)pila_desapilar(pila_tt);
+		printf("%d %s \n",countMinSketch_obtener(countMinSketch, hashtag_actual->hashtag_char), hashtag_actual->hashtag_char);
+		hashtag_destruir(hashtag_actual);
+	}
+	pila_destruir(pila_tt);
 }

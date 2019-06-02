@@ -99,3 +99,10 @@ unsigned int countMinSketch_obtener(countMinSketch_t* countMinSketch, const char
 	}
 	return valor_minimo;
 }
+
+void countMinSketch_destruir(countMinSketch_t* countMinSketch){
+	free(countMinSketch->vector_crc32);
+	free(countMinSketch->vector_sdbm);
+	free(countMinSketch->vector_djb2);
+	free(countMinSketch);
+}
