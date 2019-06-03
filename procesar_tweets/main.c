@@ -24,7 +24,7 @@ char **split_linea_dinamica(vector_t* linea){
 void cargar_split_en_countMinSketch(char** strv, countMinSketch_t* countMinSketch, trending_topic_t* trending_topic){
 	int i = 1;
 	while(strv[i] != NULL){
-		printf("Se guardo la clave %s \n", strv[i]);
+		//printf("Se guardo la clave %s \n", strv[i]);
 		countMinSketch_sumar(countMinSketch ,(const char*)strv[i]);
 		trending_topic_comparar((char*)strv[i], trending_topic, countMinSketch);
 		i++;
@@ -51,22 +51,27 @@ vector_t* leer_linea_stdin(FILE* archivo, int caracter){
 
 
 int main(int argc, char *argv[]){
-	if(argc > 2){ // o Menor
+	if(argc > 3 || argc == 1){ 
 		fprintf(stderr,"Error: Cantidad erronea de parametros\n");
+		return -1;
 	}
+
+	size_t n_lineas = atoi(argv[1]);
+	size_t k_tt = atoi(argv[2]);
 
 	countMinSketch_t* countMinSketch = countMinSketch_crear(30011);
 	if(!countMinSketch) return -1;
 
-	// Estructura con las que voy a guardar los TTs
-	trending_topic_t* trending_topic = trending_topic_crear(3, countMinSketch);
-	if(!trending_topic) return -1;
-	
-
 	FILE* archivo = stdin;
 	int caracter;
+	size_t ronda_numero = 0;
 	while((caracter = fgetc(archivo)) != EOF){
-		for(int i = 0; i < atoi(argv[1]) && caracter!= EOF; i++){
+
+		trending_topic_t* trending_topic = trending_topic_crear(k_tt, countMinSketch);
+		if(!trending_topic) return -1;
+		ronda_numero++;
+
+		for(int i = 0; i < n_lineas && caracter!= EOF; i++){
 			// Cargo la linea en un vector dinamico
 			vector_t* linea = leer_linea_stdin(archivo, caracter);
 			// 	Le realizo split a la linea cargada en el vector dinamico
@@ -79,16 +84,13 @@ int main(int argc, char *argv[]){
 			free_arreglo_split(linea_split);
 			caracter = fgetc(archivo);
 		}
-		printf("\tEl squarespace se encuentra: %i veces \n",countMinSketch_obtener(countMinSketch,"squarespace"));
+		trending_topic_imprimir(trending_topic, countMinSketch, ronda_numero);
+		trending_topic_destruir(trending_topic);
 	}
 	fclose(archivo); 
+	countMinSketch_destruir(countMinSketch);
 
-	printf("El squarespace se encuentra: %i veces \n",countMinSketch_obtener(countMinSketch,"squarespace"));
-	printf("El redsox se encuentra: %i veces \n",countMinSketch_obtener(countMinSketch,"redsox"));
-	printf("El science se encuentra: %i veces \n",countMinSketch_obtener(countMinSketch,"science"));
-	printf("El tornado se encuentra: %i veces \n",countMinSketch_obtener(countMinSketch,"tornado"));
 	
-	trending_topic_recorrer(trending_topic, countMinSketch);
 	return 0;
 	
 }

@@ -31,7 +31,7 @@ clean_all: clean clean_exe
 
 # Correr pruebas con valgrind
 valgrind: $(EXE)
-	valgrind --leak-check=full --track-origins=yes --show-reachable=yes ./$(EXE)
+	valgrind --leak-check=full --track-origins=yes --show-reachable=yes cat tweets_head_reducido.txt | ./$(EXE) 3 3
 
 # Corre pruebas con valgreen (valgrind de la catedra)
 valgreen: $(EXE)

@@ -17,4 +17,6 @@ void countMinSketch_sumar(countMinSketch_t* countMinSketch, const char *clave);
 */
 unsigned int countMinSketch_obtener(countMinSketch_t* countMinSketch, const char *clave);
 
+void countMinSketch_destruir(countMinSketch_t* countMinSketch);
+
 #endif // countMinSketch_H

@@ -22,6 +22,6 @@ void trending_topic_destruir(trending_topic_t* trending_topic);
 
 void trending_topic_comparar(const char *hashtag_actual, trending_topic_t* trending_topic, countMinSketch_t* countMinSketch);
 
-void trending_topic_recorrer(trending_topic_t* trending_topic, countMinSketch_t* countMinSketch);
+void trending_topic_imprimir(trending_topic_t* trending_topic, countMinSketch_t* countMinSketch, size_t ronda_numero);
 
 #endif // trending_topic_H
