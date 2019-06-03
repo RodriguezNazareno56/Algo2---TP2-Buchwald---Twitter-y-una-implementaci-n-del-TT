@@ -60,7 +60,9 @@ int hashtag_cmp(const void *a, const void *b){
 	if(hashtag_2->hashtag_char == NULL) return -1;
 	if (hashtag_repeticiones(hashtag_1) > hashtag_repeticiones(hashtag_2))
         return -1;
-    return hashtag_repeticiones(hashtag_1) < hashtag_repeticiones(hashtag_2) * -1;
+    if (hashtag_repeticiones(hashtag_1) < hashtag_repeticiones(hashtag_2))
+    	return 1;
+    return strcmp(hashtag_1->hashtag_char,hashtag_2->hashtag_char);
 }
 
 
@@ -100,7 +102,8 @@ void trending_topic_comparar(const char *hashtag_actual, trending_topic_t* trend
 	size_t repeticiones_hashtag_actual = countMinSketch_obtener(countMinSketch, hashtag_actual);
 
 	if(!hash_pertenece(trending_topic->hash_tt, hashtag_actual)){
-		if(repeticiones_hashtag_actual > repeticiones_tt_menor){
+		if(repeticiones_hashtag_actual > repeticiones_tt_menor ||
+			(repeticiones_hashtag_actual == repeticiones_tt_menor && strcmp(hashtag_actual,tt_menor) < 0)){
 			hashtag_t* hashtag_nuevo = hashtag_crear(hashtag_actual, countMinSketch);
 			hashtag_t* hashtag_destronado = heap_desencolar(trending_topic->heap_de_menores_tt);
 			if(hashtag_destronado->hashtag_char != NULL){
@@ -111,6 +114,8 @@ void trending_topic_comparar(const char *hashtag_actual, trending_topic_t* trend
 			heap_encolar(trending_topic->heap_de_menores_tt, hashtag_nuevo);
 			hash_guardar(trending_topic->hash_tt, hashtag_nuevo->hashtag_char, NULL);
 		}
+	}else{
+		heap_actualizar(trending_topic->heap_de_menores_tt);
 	}
 }
 

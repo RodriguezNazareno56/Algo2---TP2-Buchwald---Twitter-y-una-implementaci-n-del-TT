@@ -155,3 +155,7 @@ void *heap_desencolar(heap_t *heap){
     }
     return dato_aux;
 }
+
+void heap_actualizar(heap_t *heap){
+    downheap(heap, 0);
+}
