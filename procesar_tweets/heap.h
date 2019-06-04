@@ -82,6 +82,8 @@ void *heap_ver_tope(const heap_t *heap);
  */
 void *heap_desencolar(heap_t *heap);
 
+/* Aplica downheap desde la raiz.
+*/
 void heap_actualizar(heap_t *heap);
 
 void pruebas_heap_alumno(void);

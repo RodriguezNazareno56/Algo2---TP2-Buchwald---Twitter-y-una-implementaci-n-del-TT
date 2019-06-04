@@ -24,9 +24,8 @@ char **split_linea_dinamica(vector_t* linea){
 void cargar_split_en_countMinSketch(char** strv, countMinSketch_t* countMinSketch, trending_topic_t* trending_topic){
 	int i = 1;
 	while(strv[i] != NULL){
-		//printf("Se guardo la clave %s \n", strv[i]);
 		countMinSketch_sumar(countMinSketch ,(const char*)strv[i]);
-		trending_topic_comparar((char*)strv[i], trending_topic, countMinSketch);
+		trending_topic_agregar((char*)strv[i], trending_topic, countMinSketch);
 		i++;
 	}
 }
@@ -84,7 +83,7 @@ int main(int argc, char *argv[]){
 			free_arreglo_split(linea_split);
 			caracter = fgetc(archivo);
 		}
-		trending_topic_imprimir(trending_topic, countMinSketch, ronda_numero);
+		trending_topic_imprimir(trending_topic, ronda_numero);
 		trending_topic_destruir(trending_topic);
 	}
 	fclose(archivo); 
