@@ -14,7 +14,7 @@ struct countMinSketch{
 	unsigned int* vector_sdbm;
 };
 
-/// A U X I L I A R E S
+////////////////   A U X I L I A R E S  //////////////////////
 
 void vector_crc32_sumar(unsigned int* vector_crc32, size_t tamanio ,const char *clave){
 	unsigned int posicion = funcion_hash_crc32b(tamanio, clave);
@@ -46,13 +46,14 @@ unsigned int vector_sdbm_obtener(unsigned int* vector_sdbm, size_t tamanio ,cons
 	return vector_sdbm[posicion];
 }
 
-////////////////////////////////////////////////////////////////
-
 void setear_a_cero(unsigned int* vector, size_t tamanio){
 	for(size_t i=0; i<tamanio; i++){
 		vector[i] = 0;
 	}
 }
+
+//////////////// P R I M I T I V A S   C O U N T M I N S K E T C H //////////
+
 
 countMinSketch_t* countMinSketch_crear(size_t tamanio){
 	countMinSketch_t* countMinSketch = malloc(sizeof(countMinSketch_t));

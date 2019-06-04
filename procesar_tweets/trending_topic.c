@@ -6,7 +6,6 @@
 #include "vector.h"
 #include "heap.h"
 #include "hash.h"
-#include "pila.h"
 
 typedef struct hashtag{
     char* hashtag_char;
@@ -44,6 +43,7 @@ hashtag_t* hashtag_crear(const char *hashtag_char, countMinSketch_t* countMinSke
 }
 
 unsigned int hashtag_repeticiones(const hashtag_t* hashtag){
+	if(!hashtag) return 0;
 	return countMinSketch_obtener(hashtag->countMinSketch,hashtag->hashtag_char);
 }
 
@@ -93,7 +93,7 @@ void trending_topic_destruir(trending_topic_t* trending_topic){
 	free(trending_topic);
 }
 
-void trending_topic_comparar(const char *hashtag_actual, trending_topic_t* trending_topic, countMinSketch_t* countMinSketch){
+bool trending_topic_agregar(const char *hashtag_actual, trending_topic_t* trending_topic, countMinSketch_t* countMinSketch){
 	const char* tt_menor = ((hashtag_t*)heap_ver_tope(trending_topic->heap_de_menores_tt))->hashtag_char;
 	size_t repeticiones_tt_menor = 0;
 	if(tt_menor != NULL){
@@ -113,26 +113,25 @@ void trending_topic_comparar(const char *hashtag_actual, trending_topic_t* trend
 
 			heap_encolar(trending_topic->heap_de_menores_tt, hashtag_nuevo);
 			hash_guardar(trending_topic->hash_tt, hashtag_nuevo->hashtag_char, NULL);
+			return true;
 		}
-	}else{
-		heap_actualizar(trending_topic->heap_de_menores_tt);
+		else{
+			heap_actualizar(trending_topic->heap_de_menores_tt);
+			return true;
+		}
 	}
+	return false;
 }
 
-void trending_topic_imprimir(trending_topic_t* trending_topic, countMinSketch_t* countMinSketch, size_t ronda_numero){
-	pila_t* pila_tt = pila_crear();
-	while(!heap_esta_vacio(trending_topic->heap_de_menores_tt)){
-		hashtag_t* hashtag_actual = (hashtag_t*)heap_desencolar(trending_topic->heap_de_menores_tt);
-		const char* hashtag_char = hashtag_actual->hashtag_char;
-		if(hashtag_char != NULL){
-			pila_apilar(pila_tt, hashtag_actual);
-		}
+void trending_topic_imprimir(trending_topic_t* trending_topic, size_t ronda_numero){
+	if(heap_esta_vacio(trending_topic->heap_de_menores_tt)){
+		printf("--- %ld\n", ronda_numero);
+		return;
+	} 
+	hashtag_t* hashtag_actual = (hashtag_t*)heap_desencolar(trending_topic->heap_de_menores_tt);
+	trending_topic_imprimir(trending_topic, ronda_numero);
+	if(hashtag_actual->hashtag_char){
+		printf("%d %s \n",countMinSketch_obtener(hashtag_actual->countMinSketch,hashtag_actual->hashtag_char),hashtag_actual->hashtag_char);
 	}
-	printf("--- %ld\n", ronda_numero);
-	while(!pila_esta_vacia(pila_tt)){
-		hashtag_t* hashtag_actual = (hashtag_t*)pila_desapilar(pila_tt);
-		printf("%d %s \n",countMinSketch_obtener(countMinSketch, hashtag_actual->hashtag_char), hashtag_actual->hashtag_char);
-		hashtag_destruir(hashtag_actual);
-	}
-	pila_destruir(pila_tt);
+	heap_encolar(trending_topic->heap_de_menores_tt, hashtag_actual);
 }
