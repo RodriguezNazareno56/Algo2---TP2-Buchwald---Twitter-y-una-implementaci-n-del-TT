@@ -138,8 +138,21 @@ hash_t* guardar_usuarios_cantidad_hashtag(hash_t* hash_user_hashtags, int* valor
         }
         lista_t* usuarios = (lista_t*)hash_obtener(hash_cantidad_hashtags, cantidad_hashtags_usuario_char);
         char* usuario_copia = copiar_string_char(usuario);
-        lista_insertar_ultimo(usuarios, usuario_copia);
-        
+        if (lista_esta_vacia(usuarios)){
+            lista_insertar_primero(usuarios, usuario_copia);
+        }
+        else{
+            lista_iter_t* lista_iter = lista_iter_crear(usuarios);
+            char* actual = (char*)(lista_iter_ver_actual(lista_iter));
+            if (strcmp(actual, usuario_copia) < 0){
+                while(actual!=NULL && strcmp(actual, usuario_copia) < 0){
+                    lista_iter_avanzar(lista_iter);
+                    actual = (char*)lista_iter_ver_actual(lista_iter);
+                }
+            }
+            lista_iter_insertar(lista_iter, usuario_copia);
+            lista_iter_destruir(lista_iter);
+        }
         hash_iter_avanzar(hash_user_hashtags_iter);
     }
     hash_iter_destruir(hash_user_hashtags_iter);
@@ -147,6 +160,7 @@ hash_t* guardar_usuarios_cantidad_hashtag(hash_t* hash_user_hashtags, int* valor
 
     return hash_cantidad_hashtags;
 }
+
 
 void imprimir_ordenado(hash_t* hash_cantidad_hashtags, int valor_maximo){
     bool es_el_primero = true;
