@@ -1,12 +1,12 @@
 #include <stdio.h>
-#include "vector.h"
+#include <string.h>
+#include <stdlib.h>
+
 #include "hash.h"
 #include "lista.h"
-#include <stdbool.h>
-#include <string.h>
 #include "split.h"
+#include "vector.h"
 
-#define VALOR_MAXIMO "vmax"
 
 char **split_linea_dinamica(vector_t* linea){   
     size_t largo = vector_cantidad(linea);
@@ -40,8 +40,17 @@ vector_t* leer_linea_stdin(FILE* archivo, int caracter){
     return linea;
 }
 
-bool hashtag_usado(lista_t* datos, char* hashtag){
-    lista_iter_t* iter = lista_iter_crear(datos);
+char* copiar_string_char(const char* clave){
+    size_t clave_longitud = strlen(clave);
+    char* clave_copia = malloc(sizeof(char) * (clave_longitud+1));
+    if(!clave_copia) return NULL;
+    strcpy(clave_copia, clave);
+    clave_copia[clave_longitud] = '\0';
+    return clave_copia;
+}
+
+bool hashtag_usado(lista_t* hashtags_utilizados, const char* hashtag){
+    lista_iter_t* iter = lista_iter_crear(hashtags_utilizados);
     if (!iter) return false;
     while(!lista_iter_al_final(iter)){
         if (strcmp((char*)(lista_iter_ver_actual(iter)), hashtag) == 0){
@@ -54,42 +63,42 @@ bool hashtag_usado(lista_t* datos, char* hashtag){
     return false;
 }
 
+void funcion_destruir_hash(void* dato){
+    lista_t* lista = (lista_t*)dato;
+    lista_destruir(lista,free);
+}
+
 hash_t* guardar_usuarios_con_hashtags(FILE* archivo){
-    hash_t* hash = hash_crear(NULL);
-    if (!hash) return NULL;
-    int caracter; //= fgetc(archivo);
+    hash_t* hash_user_hashtags = hash_crear(funcion_destruir_hash);
+    if(!hash_user_hashtags) return NULL;
+    int caracter;
     while ((caracter = fgetc(archivo)) != EOF){
-        vector_t* linea = leer_linea_stdin(archivo, caracter);
+        vector_t* linea = leer_linea_stdin(archivo, caracter);  
         char** linea_spliteada = split_linea_dinamica(linea);
-        //caracter = fgetc(archivo); // Esto tomaría el '\n'o el EOF.
         const char* usuario = linea_spliteada[0];
-        lista_t* datos;
-        if (!hash_pertenece(hash, usuario)){
-            datos = lista_crear();
-            if (!datos) return NULL;
+
+        // Lista con hashtags utilizados por el usuario
+        if(!hash_pertenece(hash_user_hashtags,usuario)){
+            lista_t* lista = lista_crear();
+            if(!lista) return NULL;
+            hash_guardar(hash_user_hashtags, usuario, lista);
         }
-        else{
-            datos = (lista_t*)(hash_obtener(hash, usuario));
-        }
-        int i = 0;
+        lista_t* lista_hashtags_utilizados;
+        lista_hashtags_utilizados = (lista_t*)hash_obtener(hash_user_hashtags, usuario);
+
+        // Guardo los hashtags utilizados por el usuario sin repeticiones
+        int i = 1;
         while(linea_spliteada[i] != NULL){
-            if (hashtag_usado(datos, linea_spliteada[i])){
-                continue;
-            }
-            else{
-                lista_insertar_ultimo(datos, (void*)(linea_spliteada[i]));
+            if(!hashtag_usado(lista_hashtags_utilizados, linea_spliteada[i])){
+                char* hashtag_copia = copiar_string_char(linea_spliteada[i]);
+                lista_insertar_ultimo(lista_hashtags_utilizados, hashtag_copia);
             }
             i++;
         }
-        if (!hash_pertenece(hash, usuario)){
-            hash_guardar(hash, usuario, (void*)(datos));
-        }
-        //if (caracter != EOF){
-        //    caracter = fgetc(archivo);
-        //}
+
         free_arreglo_split(linea_spliteada);
     }
-    return hash;
+    return hash_user_hashtags;
 }
 
 int contar_hashtags_por_usuario(hash_t* hash, const char* usuario){
@@ -105,43 +114,48 @@ int contar_hashtags_por_usuario(hash_t* hash, const char* usuario){
     return cantidad_hashtags;
 }
 
-hash_t* guardar_usuarios_cantidad_hashtag(hash_t* hashtags){
-    char* aux = VALOR_MAXIMO;
-    int valor_maximo = 1;
-    hash_t* hash_cantidad_hashtags = hash_crear(NULL);
-    if (!hash_cantidad_hashtags) return NULL;
-    hash_iter_t* hash_iter = hash_iter_crear(hashtags);
-    if (!hash_iter) return NULL;
-    while(!hash_iter_al_final(hash_iter)){
-        const char* usuario = hash_iter_ver_actual(hash_iter);
-        char cantidad_hashtags_usuario = (char)contar_hashtags_por_usuario(hashtags, usuario);
+
+hash_t* guardar_usuarios_cantidad_hashtag(hash_t* hash_user_hashtags, int* valor_maximo){
+    int valor_maximo_aux = 1;
+    hash_t* hash_cantidad_hashtags = hash_crear(funcion_destruir_hash);
+    if(!hash_cantidad_hashtags) return NULL;
+    hash_iter_t* hash_user_hashtags_iter = hash_iter_crear(hash_user_hashtags);
+    if(!hash_user_hashtags_iter) return NULL;
+    while(!hash_iter_al_final(hash_user_hashtags_iter)){
+        const char* usuario = hash_iter_ver_actual(hash_user_hashtags_iter);
+        int cantidad_hashtags_usuario = contar_hashtags_por_usuario(hash_user_hashtags, usuario);
+        char cantidad_hashtags_usuario_char[10];
+        sprintf(cantidad_hashtags_usuario_char,"%d",cantidad_hashtags_usuario);
+
         if (cantidad_hashtags_usuario == -1) return NULL;
-        if (cantidad_hashtags_usuario > valor_maximo){
-            valor_maximo = cantidad_hashtags_usuario;
+        if (cantidad_hashtags_usuario > valor_maximo_aux){
+            valor_maximo_aux = cantidad_hashtags_usuario;
         }
-        if (!hash_pertenece(hash_cantidad_hashtags, &cantidad_hashtags_usuario)){
-            lista_t* usuarios = lista_crear();
-            lista_insertar_ultimo(usuarios, (void*)(usuario));
-            hash_guardar(hash_cantidad_hashtags, &cantidad_hashtags_usuario, (void*)(usuarios));
+        // Lista de usuarios con igual cantidad de hashtags
+        if (!hash_pertenece(hash_cantidad_hashtags, cantidad_hashtags_usuario_char)){
+            lista_t* lista = lista_crear();
+            hash_guardar(hash_cantidad_hashtags, cantidad_hashtags_usuario_char, lista);
         }
-        else{
-            lista_t* usuarios = (lista_t*)(hash_obtener(hash_cantidad_hashtags, &cantidad_hashtags_usuario));
-            lista_insertar_ultimo(usuarios, (void*)(usuario));
-        }
-        hash_iter_avanzar(hash_iter);
+        lista_t* usuarios = (lista_t*)hash_obtener(hash_cantidad_hashtags, cantidad_hashtags_usuario_char);
+        char* usuario_copia = copiar_string_char(usuario);
+        lista_insertar_ultimo(usuarios, usuario_copia);
+        
+        hash_iter_avanzar(hash_user_hashtags_iter);
     }
-    hash_guardar(hash_cantidad_hashtags, aux, &valor_maximo);
-    hash_iter_destruir(hash_iter);
+    hash_iter_destruir(hash_user_hashtags_iter);
+    *valor_maximo = valor_maximo_aux;
+
     return hash_cantidad_hashtags;
 }
 
-void imprimir_ordenado(hash_t* hash_cantidad_hashtags){
-    int* valor_maximo = (int*)(hash_obtener(hash_cantidad_hashtags, VALOR_MAXIMO));
+void imprimir_ordenado(hash_t* hash_cantidad_hashtags, int valor_maximo){
     bool es_el_primero = true;
-    for (int i = *valor_maximo; i > 0; i--){
-        if (hash_pertenece(hash_cantidad_hashtags,  (char*)&(i))){
+    for (int i = valor_maximo; i > 0; i--){
+        char i_char[10];
+        sprintf(i_char,"%d",i); 
+        if (hash_pertenece(hash_cantidad_hashtags, i_char)){
             printf("%i: ", i);
-            lista_t* usuarios = (lista_t*)(hash_obtener(hash_cantidad_hashtags, (char*)&(i)));
+            lista_t* usuarios = (lista_t*)(hash_obtener(hash_cantidad_hashtags, i_char));
             lista_iter_t* iter_lista = lista_iter_crear(usuarios);
             if (!iter_lista) return;
             while (!lista_iter_al_final(iter_lista)){
@@ -162,37 +176,29 @@ void imprimir_ordenado(hash_t* hash_cantidad_hashtags){
     }
 }
 
-int main(int argc, char* argv[]){
-    FILE* archivo = fopen(argv[1], "r");
+
+int main(int argc, char *argv[]){
+    if(argc != 2){ 
+        fprintf(stderr,"Error: Cantidad erronea de parametros\n");
+        return -1;
+    }
+    FILE* archivo = fopen(argv[1], "rt");
     if(!archivo){
         fprintf(stderr,"Error: archivo fuente inaccesible\n");
         return -1;
     }
-    if (argc != 2){
-        fprintf(stderr, "Error: Cantidad erronea de parametros\n");
-        return -1;
-    }
-    hash_t* hashtags = guardar_usuarios_con_hashtags(archivo);
-    if (!hashtags) return -1;
-    hash_t* hash_cantidad_hashtags = guardar_usuarios_cantidad_hashtag(hashtags);
-    if (hash_cantidad_hashtags) return -1;
-    imprimir_ordenado(hash_cantidad_hashtags);
-    hash_iter_t* iter_hashtags = hash_iter_crear(hashtags);
-    hash_iter_t* iter_hash_cantidad = hash_iter_crear(hash_cantidad_hashtags);
-    while(!hash_iter_al_final(iter_hashtags)){
-        const char* actual = hash_iter_ver_actual(iter_hashtags);
-        lista_t* datos = (lista_t*)(hash_obtener(hashtags, actual));
-        lista_destruir(datos, NULL);
-    }
-    hash_iter_destruir(iter_hashtags);
-    hash_destruir(hashtags);
-    while(!hash_iter_al_final(iter_hash_cantidad)){
-        const char* actual = hash_iter_ver_actual(iter_hash_cantidad);
-        lista_t* datos = (lista_t*)(hash_obtener(hash_cantidad_hashtags, actual));
-        lista_destruir(datos, NULL);
-    }
-    hash_iter_destruir(iter_hash_cantidad);
-    hash_destruir(hash_cantidad_hashtags);
+
+    hash_t* hash_user_hashtags = guardar_usuarios_con_hashtags(archivo);
+    if(!hash_user_hashtags) return -1;
     fclose(archivo);
+
+    int valor_maximo;
+    hash_t* hash_cantidad_hashtags = guardar_usuarios_cantidad_hashtag(hash_user_hashtags, &valor_maximo);
+    if(!hash_cantidad_hashtags) return -1;
+    hash_destruir(hash_user_hashtags);
+
+    imprimir_ordenado(hash_cantidad_hashtags, valor_maximo);
+    hash_destruir(hash_cantidad_hashtags);
+
     return 0;
 }
