@@ -68,7 +68,7 @@ int hashtag_cmp(const void *a, const void *b){
 
 
 trending_topic_t* trending_topic_crear(size_t cantidad, countMinSketch_t* countMinSketch){
-	trending_topic_t* trending_topic = malloc(sizeof(trending_topic));
+	trending_topic_t* trending_topic = malloc(sizeof(trending_topic_t));
 	if(!trending_topic) return NULL;
 	trending_topic->cantidad = cantidad;
 
