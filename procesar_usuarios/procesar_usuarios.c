@@ -164,10 +164,10 @@ hash_t* guardar_usuarios_cantidad_hashtag(hash_t* hash_user_hashtags, int* valor
 
 void imprimir_ordenado(hash_t* hash_cantidad_hashtags, int valor_maximo){
     bool es_el_primero = true;
-    for (int i = valor_maximo; i > 0; i--){
-        char i_char[10];
+    for (int i = 1; i <= valor_maximo; i++){
+        char i_char[12];
         sprintf(i_char,"%d",i); 
-        if (hash_pertenece(hash_cantidad_hashtags, i_char)){
+		if (hash_pertenece(hash_cantidad_hashtags, i_char)){
             printf("%i: ", i);
             lista_t* usuarios = (lista_t*)(hash_obtener(hash_cantidad_hashtags, i_char));
             lista_iter_t* iter_lista = lista_iter_crear(usuarios);

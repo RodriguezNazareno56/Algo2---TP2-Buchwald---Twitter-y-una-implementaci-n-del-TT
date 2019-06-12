@@ -22,9 +22,10 @@ typedef struct trending_topic{
 
 char* copiar_hashtag_char(const char* clave){
 	size_t clave_longitud = strlen(clave);
-	char* clave_copia = malloc(sizeof(char) * (clave_longitud+1));
+	char* clave_copia = malloc(sizeof(char) * (clave_longitud));
 	if(!clave_copia) return NULL;
 	strcpy(clave_copia, clave);
+	clave_copia[clave_longitud] = '\0';
 	return clave_copia;
 }
 
