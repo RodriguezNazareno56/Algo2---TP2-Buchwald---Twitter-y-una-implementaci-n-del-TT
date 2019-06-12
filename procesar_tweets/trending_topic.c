@@ -22,7 +22,7 @@ typedef struct trending_topic{
 
 char* copiar_hashtag_char(const char* clave){
 	size_t clave_longitud = strlen(clave);
-	char* clave_copia = malloc(sizeof(char) * (clave_longitud));
+	char* clave_copia = malloc(sizeof(char) * (clave_longitud+1));
 	if(!clave_copia) return NULL;
 	strcpy(clave_copia, clave);
 	clave_copia[clave_longitud] = '\0';
@@ -132,7 +132,7 @@ void trending_topic_imprimir(trending_topic_t* trending_topic, size_t ronda_nume
 	hashtag_t* hashtag_actual = (hashtag_t*)heap_desencolar(trending_topic->heap_de_menores_tt);
 	trending_topic_imprimir(trending_topic, ronda_numero);
 	if(hashtag_actual->hashtag_char){
-		printf("%d %s \n",countMinSketch_obtener(hashtag_actual->countMinSketch,hashtag_actual->hashtag_char),hashtag_actual->hashtag_char);
+		printf("%d %s\n",countMinSketch_obtener(hashtag_actual->countMinSketch,hashtag_actual->hashtag_char),hashtag_actual->hashtag_char);
 	}
 	heap_encolar(trending_topic->heap_de_menores_tt, hashtag_actual);
 }
