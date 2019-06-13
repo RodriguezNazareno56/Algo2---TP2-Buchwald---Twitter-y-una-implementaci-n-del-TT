@@ -116,10 +116,10 @@ bool trending_topic_agregar(const char *hashtag_actual, trending_topic_t* trendi
 			hash_guardar(trending_topic->hash_tt, hashtag_nuevo->hashtag_char, NULL);
 			return true;
 		}
-		else{
-			heap_actualizar(trending_topic->heap_de_menores_tt);
-			return true;
-		}
+	}
+	else{
+		heap_actualizar(trending_topic->heap_de_menores_tt);
+		return true;
 	}
 	return false;
 }

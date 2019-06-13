@@ -156,6 +156,15 @@ void *heap_desencolar(heap_t *heap){
     return dato_aux;
 }
 
-void heap_actualizar(heap_t *heap){
-    downheap(heap, 0);
+void heap_actualizar(heap_t* heap){
+    int actual = (int)heap->cant - 1;
+    while(actual > 0){
+        int posicion_padre = (actual - 1) / 2;
+        if(posicion_padre >= 0){
+            if (heap->cmp(heap->datos[posicion_padre], heap->datos[actual]) < 0){
+                swap(heap->datos, actual, posicion_padre);
+            }
+        }
+        actual--;
+    }
 }
