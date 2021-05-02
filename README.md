@@ -1,17 +1,5 @@
 # Trabajo practico numero 2 --- Catedra Buchwald 
 
-## ¡¡¡NO TRABAJEMOS, NI PUSHEEMOS DIRECTO EN EL MASTER!!!
-```
-NO HACER:
-git push origin master
-
-SINO:
-git push origin nombreRama
-//Creamos una rama nueva sobre la cual vamos a realizar nuestros cambios,
-//finalmente pusheamos nuestra rama y generamos un pull Request desde github.
-
-EN CASO DE SUCEDER, NO ES UN GRAN PROBLEMA Y LO SOLUCIONAMOS.
-```
 #### Integrantes:
 ```
 COVELA, MAXIMILIANO GASTON - Padron: 102547
